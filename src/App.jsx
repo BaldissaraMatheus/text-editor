@@ -104,9 +104,19 @@ function App() {
     setEditorCaretPosition(mdEditor, endSelectionIndex + '**'.length)
   }
 
+  function italic(e) {
+    const { editorText, selection, startSelectionIndex, endSelectionIndex } = getSelection();
+    const newWord = `*${selection}*`;
+    const newText = `${editorText.substring(0, startSelectionIndex)}${newWord}${editorText.substring(endSelectionIndex, editorText.length)}`
+    mdEditor.innerHTML = newText;
+    setValue(newText);
+    setEditorCaretPosition(mdEditor, endSelectionIndex + '**'.length)
+  }
+
   return (<div>
     <div>
       <button onClick={bold}>B</button>
+      <button onClick={italic}>I</button>
     </div>
     <div
       ref={v => mdEditor = v}
