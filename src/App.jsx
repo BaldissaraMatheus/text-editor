@@ -7,7 +7,7 @@ import { OldEditor } from "./StacksEditor";
 
 function App() {
   const [value, setValue] = createSignal("");
-  // const [pristineValue, setPristineValue] = createSignal('aaa\nbbb');
+  const [activeEditor, setActiveEditor] = createSignal(null);
   let mdEditor;
   let richTextEditor;
 
@@ -18,19 +18,24 @@ function App() {
   });
 
   // https://gist.github.com/nathansmith/86b5d4b23ed968a92fd4
-  function handleJsonEditorChange(e) {
+  function handleMarkdownEditorChange(e) {
     const text = convertToText(e.currentTarget.innerHTML)
-    const richEditorText = converter.makeHtml(text);
-    richTextEditor.innerHTML = richEditorText;
+    setValue(text);
   }
 
   function handleHTMLEditorChange(e) {
     const mdEditorText = converter.makeMarkdown(e.currentTarget.innerHTML);
-    mdEditor.innerHTML = mdEditorText;
+    setValue(mdEditorText)
   }
 
   createEffect(() => {
-    // console.log(value());
+    if (activeEditor() !== mdEditor) {
+      mdEditor.innerHTML = value();
+    }
+    if (activeEditor() !== richTextEditor) {
+      const richEditorText = converter.makeHtml(value());
+      richTextEditor.innerHTML = richEditorText;
+    }
   });
 
   // https://discourse.mozilla.org/t/how-to-get-the-caret-position-in-contenteditable-elements-with-respect-to-the-innertext/91068
@@ -95,7 +100,8 @@ function App() {
     const newWord = `**${selection}**`;
     const newText = `${editorText.substring(0, startSelectionIndex)}${newWord}${editorText.substring(endSelectionIndex, editorText.length)}`
     mdEditor.innerHTML = newText;
-    setEditorCaretPosition(mdEditor, startSelectionIndex + '**'.length)
+    setValue(newText);
+    setEditorCaretPosition(mdEditor, endSelectionIndex + '**'.length)
   }
 
   return (<div>
@@ -105,13 +111,15 @@ function App() {
     <div
       ref={v => mdEditor = v}
       contentEditable
-      onInput={handleJsonEditorChange}
+      onFocus={() => setActiveEditor(mdEditor)}
+      onInput={handleMarkdownEditorChange}
       style={{ "white-space": 'pre-wrap', width: '400px', height: '200px', border: '1px solid black', "margin-bottom": '20px', overflow: 'auto' }}
     >
     </div>
     <div
       ref={v => richTextEditor = v}
       contentEditable
+      onFocus={() => setActiveEditor(richTextEditor)}
       onInput={handleHTMLEditorChange}
       style={{ "white-space": 'pre-wrap', width: '400px', height: '200px', border: '1px solid black', overflow: 'auto' }}
     >
