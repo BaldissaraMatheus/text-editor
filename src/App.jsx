@@ -82,12 +82,20 @@ function App() {
     return { editorText, selection, startSelectionIndex, endSelectionIndex };
   }
 
-  // TODO update caret position
+  function setEditorCaretPosition(editor, pos) {
+    var selectedText = window.getSelection();
+    var selectedRange = document.createRange();
+    selectedRange.setStart(editor.childNodes[0], pos);
+    selectedText.removeAllRanges();
+    selectedText.addRange(selectedRange);
+  }
+
   function bold(e) {
     const { editorText, selection, startSelectionIndex, endSelectionIndex } = getSelection();
     const newWord = `**${selection}**`;
     const newText = `${editorText.substring(0, startSelectionIndex)}${newWord}${editorText.substring(endSelectionIndex, editorText.length)}`
     mdEditor.innerHTML = newText;
+    setEditorCaretPosition(mdEditor, startSelectionIndex + '**'.length)
   }
 
   return (<div>
