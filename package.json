@@ -16,7 +16,17 @@
   },
   "dependencies": {
     "@stackoverflow/stacks-editor": "^0.10.7",
-    "showdown": "^2.1.0",
-    "solid-js": "^1.8.11"
+    "micromark-extension-gfm": "^3.0.0",
+    "rehype-parse": "^9.0.1",
+    "rehype-remark": "^10.0.0",
+    "rehype-stringify": "^10.0.1",
+    "remark": "^15.0.1",
+    "remark-frontmatter": "^5.0.0",
+    "remark-gfm": "^4.0.0",
+    "remark-parse": "^11.0.0",
+    "remark-rehype": "^11.1.1",
+    "remark-stringify": "^11.0.0",
+    "solid-js": "^1.8.11",
+    "unified": "^11.0.5"
   }
 }
