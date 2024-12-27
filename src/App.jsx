@@ -39,7 +39,7 @@ function App() {
   });
 
   // https://discourse.mozilla.org/t/how-to-get-the-caret-position-in-contenteditable-elements-with-respect-to-the-innertext/91068
-  function getEditorCaretPositions() {
+  function getEditorSelectionRange() {
     const target = mdEditor;
     target.focus(); 
     const _range = document.getSelection().getRangeAt(0); 
@@ -56,35 +56,37 @@ function App() {
   }
 
   function getSelection() {
-    const carentPositions = getEditorCaretPositions();
-    const caretPosition = getEditorCaretPositions().start;
+    const selectionRange = getEditorSelectionRange();
     const editorText = convertToText(mdEditor.innerHTML)
     let startSelectionIndex = 0;
     let endSelectionIndex = editorText.length;
-    if (carentPositions.end !== carentPositions.start) {
-      startSelectionIndex = carentPositions.start;
-      endSelectionIndex = carentPositions.end;
+    if (selectionRange.end !== selectionRange.start) {
+      startSelectionIndex = selectionRange.start;
+      endSelectionIndex = selectionRange.end;
     } else {
-      const prevLineBreak = editorText.lastIndexOf('\n', caretPosition - 1);
+      const prevLineBreak = editorText.lastIndexOf('\n', selectionRange.start - 1);
       if (prevLineBreak > startSelectionIndex) {
         startSelectionIndex = prevLineBreak;
       }
-      const prevWhiteSpace = editorText.lastIndexOf(' ', caretPosition - 1);
+      const prevWhiteSpace = editorText.lastIndexOf(' ', selectionRange.start - 1);
       if (prevWhiteSpace > startSelectionIndex) {
         startSelectionIndex = prevWhiteSpace;
       }
       startSelectionIndex += 1;
-      const nextLineBreak = editorText.indexOf('\n', caretPosition);
+      const nextLineBreak = editorText.indexOf('\n', selectionRange.start);
       if (nextLineBreak !== -1) {
         endSelectionIndex = nextLineBreak;
       }
-      const nextWhiteSpace = editorText.indexOf(' ', caretPosition);
+      const nextWhiteSpace = editorText.indexOf(' ', selectionRange.start);
       if (nextWhiteSpace !== -1 && nextWhiteSpace < endSelectionIndex) {
         endSelectionIndex = nextWhiteSpace;
       }
     }
-    const selection = editorText.substring(startSelectionIndex, endSelectionIndex)
-    return { editorText, selection, startSelectionIndex, endSelectionIndex };
+    const selection = editorText.substring(startSelectionIndex, endSelectionIndex);
+    const prevFragment = editorText.substring(0, startSelectionIndex);
+    const nextFragment = editorText.substring(endSelectionIndex, editorText.length);
+    const caretPosition = selectionRange.start;
+    return { selection, caretPosition, startSelectionIndex, endSelectionIndex, prevFragment, nextFragment };
   }
 
   function setEditorCaretPosition(editor, pos) {
@@ -96,27 +98,30 @@ function App() {
   }
 
   function bold(e) {
-    const { editorText, selection, startSelectionIndex, endSelectionIndex } = getSelection();
+    const { selection, prevFragment, nextFragment, caretPosition } = getSelection();
     const newWord = `**${selection}**`;
-    const newText = `${editorText.substring(0, startSelectionIndex)}${newWord}${editorText.substring(endSelectionIndex, editorText.length)}`
-    mdEditor.innerHTML = newText;
-    setValue(newText);
-    setEditorCaretPosition(mdEditor, endSelectionIndex + '**'.length)
+    const newText = `${prevFragment}${newWord}${nextFragment}`
+    applyTextModifier(newText, caretPosition + '**'.length)
   }
 
   function italic(e) {
-    const { editorText, selection, startSelectionIndex, endSelectionIndex } = getSelection();
+    const { selection, prevFragment, nextFragment, caretPosition } = getSelection();
     const newWord = `*${selection}*`;
-    const newText = `${editorText.substring(0, startSelectionIndex)}${newWord}${editorText.substring(endSelectionIndex, editorText.length)}`
+    const newText = `${prevFragment}${newWord}${nextFragment}`
+    applyTextModifier(newText, caretPosition + '*'.length)
+  }
+
+  function applyTextModifier(newText, caretPosition) {
     mdEditor.innerHTML = newText;
     setValue(newText);
-    setEditorCaretPosition(mdEditor, endSelectionIndex + '**'.length)
+    setEditorCaretPosition(mdEditor, caretPosition)
   }
 
   return (<div>
     <div>
       <button onClick={bold}>B</button>
       <button onClick={italic}>I</button>
+      {/* <button onClick={strikethrough}>S</button> */}
     </div>
     <div
       ref={v => mdEditor = v}
