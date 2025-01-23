@@ -3,15 +3,16 @@ import styles from "./App.module.css";
 import { createEffect, createSignal, onMount } from "solid-js";
 import { convertToText } from "./util/convertToText";
 import { OldEditor } from "./StacksEditor";
-import rehypeStringify from 'rehype-stringify'
-import remarkParse from 'remark-parse'
-import remarkRehype from 'remark-rehype'
-import remarkGfm from 'remark-gfm'
-import remarkFrontmatter from 'remark-frontmatter'
+import rehypeStringify from "rehype-stringify";
+import remarkParse from "remark-parse";
+import remarkRehype from "remark-rehype";
+import remarkGfm from "remark-gfm";
+import remarkFrontmatter from "remark-frontmatter";
 import rehypeRemark from "rehype-remark";
-import {unified} from 'unified'
+import { unified } from "unified";
 import remarkStringify from "remark-stringify";
 import rehypeParse from "rehype-parse";
+import { rehypeRemoveCheckboxDisabled } from "./rehype-remove-checkbox-disabled";
 
 function App() {
   const [value, setValue] = createSignal("");
@@ -33,11 +34,11 @@ function App() {
     unified()
       .use(rehypeParse)
       .use(rehypeRemark)
+      .use(remarkFrontmatter)
+      .use(remarkGfm)
       .use(remarkStringify)
       .process(e.currentTarget.innerHTML)
-      .then(res => setValue(res))
-    // const mdEditorText = converter.makeMarkdown(e.currentTarget.innerHTML);
-    // setValue(mdEditorText);
+      .then((res) => setValue(res));
   }
 
   createEffect(() => {
@@ -48,12 +49,12 @@ function App() {
       unified()
         .use(remarkParse)
         .use(remarkFrontmatter)
-        // TODO Visit each check box and remove or replace the disabled property https://github.com/orgs/remarkjs/discussions/1205#discussioncomment-6717030
         .use(remarkGfm)
         .use(remarkRehype)
+        .use(rehypeRemoveCheckboxDisabled)
         .use(rehypeStringify)
         .process(value())
-        .then(res => richTextEditor.innerHTML = res)
+        .then((res) => (richTextEditor.innerHTML = res));
     }
   });
 
@@ -168,6 +169,7 @@ function App() {
         ref={(v) => (mdEditor = v)}
         contentEditable
         onFocus={() => setActiveEditor(mdEditor)}
+        onClick={() => setActiveEditor(mdEditor)}
         onInput={handleMarkdownEditorChange}
         style={{
           "white-space": "pre-wrap",
@@ -182,6 +184,7 @@ function App() {
         ref={(v) => (richTextEditor = v)}
         contentEditable
         onFocus={() => setActiveEditor(richTextEditor)}
+        onClick={() => setActiveEditor(richTextEditor)}
         onInput={handleHTMLEditorChange}
         style={{
           "white-space": "pre-wrap",
@@ -190,8 +193,7 @@ function App() {
           border: "1px solid black",
           overflow: "auto",
         }}
-      >
-      </div>
+      ></div>
       <OldEditor />
     </div>
   );
